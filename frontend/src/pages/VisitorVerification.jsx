@@ -863,7 +863,10 @@ export default function VisitorVerification() {
               return (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
+                  onClick={() => {
+                    setActiveTab(tab.key);
+                    if (tab.key !== 'CHECKED_OUT') setSearch('');
+                  }}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all
                     ${isActive
                       ? 'bg-blue-50 text-surface-strong shadow-sm border border-blue-100'
@@ -881,17 +884,19 @@ export default function VisitorVerification() {
             })}
           </div>
 
-          {/* Search */}
-          <div className="relative min-w-[280px]">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari nama, reg. no., perusahaan, PIC, department, atau kode pass..."
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-surface-strong transition-all"
-            />
-          </div>
+          {/* Search — Hanya ditampilkan untuk tab Selesai Hari Ini */}
+          {activeTab === 'CHECKED_OUT' && (
+            <div className="relative min-w-[280px]">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari nama, reg. no., perusahaan, PIC, department, atau kode pass..."
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-surface-strong transition-all"
+              />
+            </div>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -959,17 +964,15 @@ export default function VisitorVerification() {
               </div>
             )}
 
-            {/* Pagination Component */}
-            {filtered.length > 0 && (
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                totalItems={filtered.length}
-                pageSize={PAGE_SIZE}
-                onPageChange={setPage}
-                itemName="visitor"
-              />
-            )}
+            {/* Pagination Component Always Visible */}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={filtered.length}
+              pageSize={PAGE_SIZE}
+              onPageChange={setPage}
+              itemName="visitor"
+            />
           </div>
         )}
       </div>
