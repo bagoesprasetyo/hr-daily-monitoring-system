@@ -1,0 +1,9 @@
+node_modules
+.git
+.gitignore
+*.log
+.env
+dist
+temp_ktp_ocr
+backend/temp_ktp_ocr
+backend/data/*.log

@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Typography */
+  --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13.33px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 30px;
+
+  /* Colors - Modern, Lightweight Slate & Indigo Palette */
+  --color-text-primary: #1e293b;     /* Slate 800 - soft charcoal */
+  --color-text-secondary: #64748b;   /* Slate 500 - secondary subtext */
+  --color-surface-muted: #ffffff;    /* Pure White - base background */
+  --color-surface-raised: #ffffff;   /* Pure White for cards/sheets */
+  --color-surface-strong: #0000ff;   /* Pure Blue - brand color */
+
+  /* Spacing */
+  --spacing-space-1: 8px;
+  --spacing-space-2: 12px;
+  --spacing-space-3: 15px;
+  --spacing-space-4: 18.76px;
+  --spacing-space-5: 20px;
+  --spacing-space-6: 24px;
+  --spacing-space-7: 25px;
+  --spacing-space-8: 30px;
+
+  /* Radius */
+  --radius-xs: 12px;
+}
+
+@layer base {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  *, ::before, ::after {
+    box-sizing: border-box !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    @apply text-text-primary font-primary antialiased;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  input, textarea, select, button {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+
+  /* Focus visible accessibility rules */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-surface-strong/20 ring-offset-1 ring-offset-surface-muted;
+  }
+}
+
+/* 
+ * UI Optimization & Lightweight Styling Overrides
+ * Converts heavy bubbly elements, thick borders, and blocky shapes 
+ * into a modern, airy, premium dashboard experience.
+ */
+
+/* Override bubbly [20px] rounded corners to sleek, professional [12px] */
+.rounded-\[20px\] {
+  border-radius: 12px !important;
+}
+
+/* Thinner, softer, lightweight borders - adjusted to pop on FFFFFF background */
+.border-gray-200, 
+.border-gray-200\/80,
+.border-gray-300 {
+  border-color: #e2e8f0 !important; /* Slate 200 - clean and subtle */
+}
+
+/* Softer background for tables and panels */
+.bg-surface-muted\/20 {
+  background-color: rgba(241, 245, 249, 0.4) !important;
+}
+.bg-surface-muted\/40 {
+  background-color: rgba(241, 245, 249, 0.6) !important;
+}
+.bg-surface-muted\/50 {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+}
+.bg-surface-muted\/80 {
+  background-color: #f8fafc !important;
+}
+
+/* Premium micro-shadows instead of thick borders for cards, visible on white background */
+.bg-white {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(0, 0, 255, 0.05) !important;
+}
+
+/* Hover effects for interactive lists/cards */
+.hover\:bg-gray-50:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Premium Sidebar Overrides */
+aside {
+  background-color: #ffffff !important; /* Clean white sidebar */
+  box-shadow: none !important; /* No shadow on sidebar itself */
+}
+aside .bg-white\/50 {
+  background-color: #f1f5f9 !important; /* Light background for user panel and footer */
+}
+
+/* Header & sidebar logo area: no box-shadow, only the border-b divider line */
+header,
+aside > div:first-child {
+  box-shadow: none !important;
+}
+
+/* Modern navigation items */
+nav a {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+nav a.bg-surface-strong {
+  background-color: #0000ff !important;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 255, 0.25) !important;
+}
+
+/* Button & interactive hover background overrides to Pure Blue hover variants */
+.bg-surface-strong:hover,
+.hover\:bg-\[\#0c2a8c\]:hover {
+  background-color: #0000d6 !important; /* Deep Blue Hover */
+}
+.hover\:bg-\[\#0c2a8c\]\/10:hover {
+  background-color: rgba(0, 0, 255, 0.1) !important;
+}
+
+/* Lightweight tables */
+table th {
+  color: #64748b !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* ===== Global Indigo → Pure Blue (#0000FF) Overrides ===== */
+/* Replace all Tailwind indigo utilities with pure blue to match brand theme */
+
+/* bg-indigo-* */
+.bg-indigo-50  { background-color: #eff6ff !important; }
+.bg-indigo-100 { background-color: #dbeafe !important; }
+.bg-indigo-600 { background-color: #0000ff !important; }
+.bg-indigo-700 { background-color: #0000d6 !important; }
+
+/* hover:bg-indigo-* */
+.hover\:bg-indigo-50:hover  { background-color: #eff6ff !important; }
+.hover\:bg-indigo-600:hover { background-color: #0000ff !important; }
+.hover\:bg-indigo-700:hover { background-color: #0000d6 !important; }
+
+/* text-indigo-* */
+.text-indigo-600 { color: #0000ff !important; }
+.text-indigo-700 { color: #0000d6 !important; }
+
+/* hover:text-indigo-* */
+.hover\:text-indigo-600:hover { color: #0000ff !important; }
+
+/* border-indigo-* */
+.border-indigo-200 { border-color: #bfdbfe !important; }
+.border-indigo-400 { border-color: #0000ff !important; }
+.hover\:border-indigo-400:hover { border-color: #0000ff !important; }
+
+/* focus:border-indigo-* */
+.focus\:border-indigo-600:focus { border-color: #0000ff !important; }
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Slate 300 */
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* Slate 400 */
+}
+
+/* ===== Performance Optimizations ===== */
+
+/* Reduce transition cost: use shorter default duration */
+.transition {
+  transition-duration: 150ms !important;
+  transition-timing-function: ease !important;
+}
+.transition-all {
+  transition-duration: 150ms !important;
+}
+.duration-300 {
+  transition-duration: 150ms !important;
+}
+
+/* Hardware-accelerate only elements that actually animate */
+.animate-spin,
+.animate-ping,
+.animate-bounce-slow {
+  will-change: transform;
+}
+
+/* Disable expensive hover-bg transitions on table rows — use simple color change */
+tbody tr.hover\:bg-gray-50:hover,
+tbody tr.hover\:bg-slate-50\/60:hover {
+  transition: none !important;
+}
+
+/* Remove infinite animation from decorative elements on dashboard */
+.animate-bounce-slow {
+  animation-duration: 4s;
+}
+
+/* Custom confirm modal scale-in animation */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Smooth tab and view fade-in transition */
+@keyframes tabFadeIn {
+  from {
+    opacity: 0.3;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-tab-fade {
+  animation: tabFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
