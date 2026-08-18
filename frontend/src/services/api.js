@@ -119,6 +119,7 @@ const api = {
   get: (endpoint, options = {}) => request(endpoint, { ...options, method: 'GET' }).then(r => ({ data: r })),
   post: (endpoint, body, options = {}) => request(endpoint, { ...options, method: 'POST', body }).then(r => ({ data: r })),
   put: (endpoint, body, options = {}) => request(endpoint, { ...options, method: 'PUT', body }).then(r => ({ data: r })),
+  patch: (endpoint, body, options = {}) => request(endpoint, { ...options, method: 'PATCH', body }).then(r => ({ data: r })),
   delete: (endpoint, options = {}) => request(endpoint, { ...options, method: 'DELETE' }).then(r => ({ data: r })),
 };
 
