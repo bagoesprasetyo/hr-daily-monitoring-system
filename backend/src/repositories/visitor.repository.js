@@ -275,7 +275,9 @@ class VisitorRepository {
 
   async getVisitors({ status, date, search, page = 1, limit = 20 }) {
     const pool = getPool();
-    const offset = (page - 1) * limit;
+    const numLimit = Math.max(1, parseInt(limit, 10) || 20);
+    const numPage = Math.max(1, parseInt(page, 10) || 1);
+    const offset = (numPage - 1) * numLimit;
     const conditions = [];
     const params = [];
 
@@ -327,11 +329,11 @@ class VisitorRepository {
       LEFT JOIN users u_checkout ON v.checkout_by = u_checkout.id
       ${where}
       ORDER BY v.created_at DESC
-      LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+      LIMIT ${numLimit} OFFSET ${offset}`,
+      params
     );
 
-    return { rows, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { rows, total, page: numPage, limit: numLimit, totalPages: Math.ceil(total / numLimit) };
   }
 
   async getVisitorById(id) {
