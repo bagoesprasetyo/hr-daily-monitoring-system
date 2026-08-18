@@ -42,20 +42,28 @@ app.use('/api', (req, res, next) => {
 app.use('/api', routes);
 
 // ── Serve Frontend Static Files (Production Build) ────────────
-const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+const fs = require('fs');
+const candidatePaths = [
+  path.join(__dirname, '../../frontend/dist'),
+  path.join(__dirname, '../frontend/dist'),
+  path.join(__dirname, '../../dist'),
+  path.join(__dirname, '../public'),
+];
+const frontendDistPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
+
 app.use(express.static(frontendDistPath));
 
 // ── SPA Fallback for Frontend Routes ─────────────────────────
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(frontendDistPath, 'index.html'), (err) => {
-    if (err) {
-      res.status(404).json({
-        success: false,
-        message: `Route ${req.method} ${req.path} tidak ditemukan.`,
-        code: 'NOT_FOUND',
-      });
-    }
+  const indexPath = path.join(frontendDistPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.path} tidak ditemukan.`,
+    code: 'NOT_FOUND',
   });
 });
 
