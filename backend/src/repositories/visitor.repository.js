@@ -244,17 +244,15 @@ class VisitorRepository {
         throw new Error(`Visitor sudah dalam status ${visitorRows[0].status}.`);
       }
 
-      const now = new Date();
-
       // Update visitor: WAITING_PASS → INSIDE
       await conn.execute(
         `UPDATE visitors SET
           registration_pass_id = ?,
           assigned_by = ?,
-          assigned_at = ?,
+          assigned_at = NOW(),
           status = 'INSIDE'
          WHERE id = ?`,
-        [passId, assignedByUserId, now, visitorId]
+        [passId, assignedByUserId, visitorId]
       );
 
       // Update pass: AVAILABLE → IN_USE
@@ -394,7 +392,7 @@ class VisitorRepository {
         : ['INSIDE', 'WAITING_PASS', 'REGISTERED'];
       const placeholders = allowedFrom.map(() => '?').join(',');
       const [result] = await conn.execute(
-        `UPDATE visitors SET status = ?, verified_by = ? WHERE id = ? AND status IN (${placeholders})`,
+        `UPDATE visitors SET status = ?, verified_by = ?, verified_at = NOW() WHERE id = ? AND status IN (${placeholders})`,
         [newStatus, verifiedBy, id, ...allowedFrom]
       );
 
@@ -420,11 +418,10 @@ class VisitorRepository {
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
-      const now = new Date();
       // Accept INSIDE or VERIFIED → CHECKED_OUT
       await conn.execute(
-        "UPDATE visitors SET status = 'CHECKED_OUT', checkout_at = ?, checkout_by = ? WHERE id = ? AND status IN ('INSIDE','VERIFIED','REGISTERED','COMPLETED')",
-        [now, checkoutByUserId || null, id]
+        "UPDATE visitors SET status = 'CHECKED_OUT', checkout_at = NOW(), checkout_by = ? WHERE id = ? AND status IN ('INSIDE','VERIFIED','REGISTERED','COMPLETED')",
+        [checkoutByUserId || null, id]
       );
       let targetPassId = passId;
       if (!targetPassId) {

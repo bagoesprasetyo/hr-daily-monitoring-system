@@ -36,7 +36,11 @@ const STATUS_LABEL = {
 function formatTime(dt) {
   if (!dt) return '—';
   try {
-    return new Date(dt).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const s = String(dt).trim();
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(s)) return s.slice(0, 5);
+    const date = new Date(s.includes('T') ? s : s.replace(' ', 'T'));
+    if (isNaN(date.getTime())) return dt;
+    return date.toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(' pukul ', ', ');
   } catch { return dt; }
 }
 
@@ -497,7 +501,9 @@ function VisitorRow({ v, onSelect, onAssign, onCheckout, onVerify }) {
           <span className="text-xs text-gray-400 font-italic">Belum ada</span>
         )}
       </td>
-      <td className="px-4 py-3 text-xs text-gray-400">{formatTime(v.created_at)}</td>
+      <td className="px-4 py-3 text-xs text-gray-400">
+        {formatTime(v.status === 'CHECKED_OUT' ? (v.checkout_at || v.assigned_at) : (v.assigned_at || v.created_at || v.visit_time))}
+      </td>
       <td className="px-4 py-3">
         <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${STATUS_BADGE[v.status] || STATUS_BADGE.REGISTERED}`}>
           {STATUS_LABEL[v.status] || v.status}

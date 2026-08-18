@@ -15,6 +15,7 @@ function getPool() {
     queueLimit: 0,
     charset: 'utf8mb4',
     dateStrings: true,
+    timezone: '+07:00',
   });
   return pool;
 }
@@ -25,12 +26,19 @@ async function initializeDatabase() {
     port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
+    timezone: '+07:00',
   });
+  await connection.query("SET time_zone = '+07:00'");
   const dbName = process.env.DB_NAME || 'hr_monitoring';
   await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
   await connection.end();
 
   const p = getPool();
+  try {
+    await p.query("SET time_zone = '+07:00'");
+  } catch (err) {
+    console.warn('Could not set pool timezone:', err.message);
+  }
 
   // ── Core Tables ─────────────────────────────────────────────
   await p.execute(`
