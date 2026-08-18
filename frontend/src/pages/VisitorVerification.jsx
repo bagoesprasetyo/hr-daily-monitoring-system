@@ -484,16 +484,18 @@ function DetailModal({ visitor, onClose, onAssign, onScan, onVerify, onCheckout 
             </button>
           </div>
         )}
-        {canCheckout && (
+        {isInside && (
           <div className="flex gap-3 p-6 border-t border-gray-100">
-            {isInside && (
-              <button
-                onClick={onVerify}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-purple-600 text-white rounded-xl text-sm font-bold hover:bg-purple-700 transition-all shadow-sm"
-              >
-                <CheckCircle2 className="w-4 h-4" /> Verifikasi (Security Perusahaan)
-              </button>
-            )}
+            <button
+              onClick={onVerify}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-purple-600 text-white rounded-xl text-sm font-bold hover:bg-purple-700 transition-all shadow-sm"
+            >
+              <CheckCircle2 className="w-4 h-4" /> Verifikasi (Security Perusahaan)
+            </button>
+          </div>
+        )}
+        {isVerified && (
+          <div className="flex gap-3 p-6 border-t border-gray-100">
             <button
               onClick={onCheckout}
               className="flex-1 flex items-center justify-center gap-2 py-3 bg-orange-500 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-all shadow-sm"
@@ -512,7 +514,7 @@ function DetailModal({ visitor, onClose, onAssign, onScan, onVerify, onCheckout 
 function VisitorRow({ v, onSelect, onAssign, onCheckout, onVerify }) {
   const isWaiting = v.status === 'WAITING_PASS' || v.status === 'REGISTERED';
   const isInside = v.status === 'INSIDE';
-  const canCheckout = ['INSIDE', 'VERIFIED'].includes(v.status);
+  const isVerified = v.status === 'VERIFIED';
 
   return (
     <tr
@@ -563,7 +565,7 @@ function VisitorRow({ v, onSelect, onAssign, onCheckout, onVerify }) {
               Verifikasi
             </button>
           )}
-          {canCheckout && (
+          {isVerified && (
             <button
               onClick={() => onCheckout(v)}
               className="px-2.5 py-1.5 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 transition-all shadow-sm flex items-center gap-1"
