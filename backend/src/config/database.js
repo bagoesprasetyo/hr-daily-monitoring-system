@@ -426,6 +426,7 @@ async function initializeDatabase() {
       assigned_by VARCHAR(36),
       assigned_at DATETIME,
       verified_by VARCHAR(36),
+      verified_at DATETIME,
       checkout_at DATETIME,
       checkout_by VARCHAR(36),
       confirmation_token VARCHAR(64),
@@ -597,6 +598,16 @@ async function initializeDatabase() {
     `);
   } catch (e) {
     // Ignore if already migrated
+  }
+
+  // Migration: Add verified_at column to visitors table if not exists
+  try {
+    await p.execute(`
+      ALTER TABLE visitors
+      ADD COLUMN verified_at DATETIME AFTER verified_by
+    `);
+  } catch (e) {
+    // Ignore if already exists
   }
 }
 
