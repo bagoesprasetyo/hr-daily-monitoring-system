@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Building2, Search, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, Search, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import api from '../services/api';
 import socket from '../services/socket';
 import Pagination from '../components/Pagination';
@@ -13,6 +13,7 @@ export default function DepartmentManagement() {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     code: '',
@@ -20,6 +21,12 @@ export default function DepartmentManagement() {
     description: ''
   });
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   useEffect(() => {
     fetchDepartments();
@@ -67,28 +74,33 @@ export default function DepartmentManagement() {
       setSaving(true);
       if (editingId) {
         await api.put(`/departments/${editingId}`, formData);
+        showToast('success', 'Departemen berhasil diperbarui.');
       } else {
         await api.post('/departments', formData);
+        showToast('success', 'Departemen baru berhasil ditambahkan.');
       }
       await fetchDepartments();
       handleCloseModal();
     } catch (err) {
       console.error('Failed to save department:', err);
-      alert(err.message || 'Gagal menyimpan departemen');
+      showToast('error', err.message || 'Gagal menyimpan departemen');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Yakin ingin menghapus departemen ${name}?`)) return;
-    
     try {
+      setSaving(true);
       await api.delete(`/departments/${id}`);
+      showToast('success', `Departemen ${name} berhasil dihapus.`);
+      setConfirmDelete(null);
       await fetchDepartments();
     } catch (err) {
       console.error('Failed to delete department:', err);
-      alert(err.message || 'Gagal menghapus departemen');
+      showToast('error', err.message || 'Gagal menghapus departemen');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -184,7 +196,7 @@ export default function DepartmentManagement() {
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(dept.id, dept.name)}
+                          onClick={() => setConfirmDelete({ id: dept.id, name: dept.name })}
                           className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-[20px] transition-colors"
                           title="Hapus"
                         >
@@ -274,6 +286,53 @@ export default function DepartmentManagement() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Confirm Delete Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/80 backdrop-blur-sm">
+          <div className="bg-white border border-gray-200 rounded-[20px] w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-200 flex items-center gap-3">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              <h2 className="text-lg font-bold text-text-primary">Hapus Departemen</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Apakah Anda yakin ingin menghapus departemen <strong className="text-text-primary">{confirmDelete.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 px-4 py-2.5 bg-surface-raised hover:bg-gray-100 text-text-primary rounded-[20px] font-medium transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => handleDelete(confirmDelete.id, confirmDelete.name)}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-[20px] font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Ya, Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${
+          toast.type === 'success'
+            ? 'bg-emerald-600 text-white shadow-emerald-500/20'
+            : 'bg-red-600 text-white shadow-red-500/20'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+          <span>{toast.msg}</span>
         </div>
       )}
     </div>

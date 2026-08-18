@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Users, Search, Loader2, KeyRound, Power, ShieldAlert } from 'lucide-react';
+import { Plus, Pencil, Users, Search, Loader2, KeyRound, Power, ShieldAlert, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import api from '../services/api';
 import socket from '../services/socket';
 import Pagination from '../components/Pagination';
@@ -16,8 +16,15 @@ export default function UserManagement() {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [confirmToggle, setConfirmToggle] = useState(null); // { id, name, currentStatus }
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const [formData, setFormData] = useState({
     username: '',
@@ -62,10 +69,10 @@ export default function UserManagement() {
     if (user) {
       setEditingId(user.id);
       setFormData({
-        username: user.username, // Disabled in edit
+        username: user.username,
         email: user.email,
         full_name: user.full_name,
-        password: '', // Ignored in edit, handled via reset-password
+        password: '',
         role: user.role,
         department_id: user.department_id || ''
       });
@@ -92,36 +99,40 @@ export default function UserManagement() {
     e.preventDefault();
     try {
       setSaving(true);
-      // Clean up department_id if empty
       const payload = { ...formData };
       if (!payload.department_id) payload.department_id = null;
 
       if (editingId) {
-        // Remove password & username for update
         delete payload.password;
         delete payload.username;
         await api.put(`/users/${editingId}`, payload);
+        showToast('success', 'Data user berhasil diperbarui.');
       } else {
         await api.post('/users', payload);
+        showToast('success', 'User baru berhasil ditambahkan.');
       }
       await fetchData();
       handleCloseModal();
     } catch (err) {
       console.error('Failed to save user:', err);
-      alert(err.message || 'Gagal menyimpan user');
+      showToast('error', err.message || 'Gagal menyimpan user');
     } finally {
       setSaving(false);
     }
   };
 
   const handleToggleActive = async (id, name, currentStatus) => {
-    if (!window.confirm(`Yakin ingin ${currentStatus ? 'me-nonaktifkan' : 'mengaktifkan'} user ${name}?`)) return;
     try {
+      setSaving(true);
       await api.patch(`/users/${id}/toggle-active`);
+      showToast('success', `User ${name} berhasil ${currentStatus ? 'dinonaktifkan' : 'diaktifkan'}.`);
+      setConfirmToggle(null);
       await fetchData();
     } catch (err) {
       console.error('Failed to toggle status:', err);
-      alert(err.message || 'Gagal mengubah status user');
+      showToast('error', err.message || 'Gagal mengubah status user');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -137,11 +148,11 @@ export default function UserManagement() {
       await api.patch(`/users/${resetData.userId}/reset-password`, {
         new_password: resetData.new_password
       });
-      alert('Password berhasil di-reset');
       setIsResetModalOpen(false);
+      showToast('success', 'Password berhasil di-reset.');
     } catch (err) {
       console.error('Failed to reset password:', err);
-      alert(err.message || 'Gagal reset password');
+      showToast('error', err.message || 'Gagal reset password');
     } finally {
       setSaving(false);
     }
@@ -258,7 +269,7 @@ export default function UserManagement() {
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleToggleActive(user.id, user.full_name, user.is_active)}
+                          onClick={() => setConfirmToggle({ id: user.id, name: user.full_name, currentStatus: user.is_active })}
                           className={`p-2 rounded-[20px] transition-colors ${user.is_active ? 'text-gray-500 hover:text-red-600 hover:bg-red-50' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'}`}
                           title={user.is_active ? 'Nonaktifkan User' : 'Aktifkan User'}
                         >
@@ -440,6 +451,59 @@ export default function UserManagement() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Confirm Toggle Active Modal */}
+      {confirmToggle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/80 backdrop-blur-sm">
+          <div className="bg-white border border-gray-200 rounded-[20px] w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-200 flex items-center gap-3">
+              <Power className={`w-5 h-5 ${confirmToggle.currentStatus ? 'text-red-600' : 'text-green-600'}`} />
+              <h2 className="text-lg font-bold text-text-primary">
+                {confirmToggle.currentStatus ? 'Nonaktifkan User' : 'Aktifkan User'}
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">
+                Apakah Anda yakin ingin {confirmToggle.currentStatus ? 'me-nonaktifkan' : 'mengaktifkan'} akun <strong className="text-text-primary">{confirmToggle.name}</strong>?
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmToggle(null)}
+                  className="flex-1 px-4 py-2.5 bg-surface-raised hover:bg-gray-100 text-text-primary rounded-[20px] font-medium transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => handleToggleActive(confirmToggle.id, confirmToggle.name, confirmToggle.currentStatus)}
+                  className={`flex-1 px-4 py-2.5 text-white rounded-[20px] font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    confirmToggle.currentStatus ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Ya, {confirmToggle.currentStatus ? 'Nonaktifkan' : 'Aktifkan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-[9999] px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${
+          toast.type === 'success'
+            ? 'bg-emerald-600 text-white shadow-emerald-500/20'
+            : toast.type === 'info'
+            ? 'bg-blue-600 text-white shadow-blue-500/20'
+            : 'bg-red-600 text-white shadow-red-500/20'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+          <span>{toast.msg}</span>
         </div>
       )}
     </div>
