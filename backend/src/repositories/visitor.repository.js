@@ -177,13 +177,13 @@ class VisitorRepository {
       const id = uuidv4();
       const visitorCode = await this.generateVisitorCode();
       const confirmationToken = crypto.randomBytes(24).toString('hex');
-      const {
-        name, company, phone,
-        total_person, vehicle_number,
-        // Data Kunjungan manual
-        department_manual, pic_manual,
-        purpose, visit_date, visit_time,
-      } = data;
+      const cleanUpper = (str) => typeof str === 'string' ? str.trim().toUpperCase() : (str || null);
+      const cleanName = cleanUpper(data.name);
+      const cleanCompany = cleanUpper(data.company);
+      const cleanDept = cleanUpper(data.department_manual);
+      const cleanPic = cleanUpper(data.pic_manual);
+      const cleanPurpose = cleanUpper(data.purpose);
+      const cleanVehicle = cleanUpper(data.vehicle_number);
 
       await conn.execute(`
         INSERT INTO visitors (
@@ -193,17 +193,17 @@ class VisitorRepository {
           status, confirmation_token
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          id, visitorCode, name,
-          company || null, phone || null,
-          department_manual || null,
-          pic_manual || null,
-          department_manual || null,   // address as fallback
-          pic_manual || null,          // position as fallback
-          purpose || null,
-          vehicle_number || null,
-          total_person ? Number(total_person) : 1,
-          visit_date || null,
-          visit_time || null,
+          id, visitorCode, cleanName,
+          cleanCompany, data.phone?.trim() || null,
+          cleanDept,
+          cleanPic,
+          cleanDept,   // address as fallback
+          cleanPic,    // position as fallback
+          cleanPurpose,
+          cleanVehicle,
+          data.total_person ? Number(data.total_person) : 1,
+          data.visit_date || null,
+          data.visit_time || null,
           'WAITING_PASS', confirmationToken
         ]
       );

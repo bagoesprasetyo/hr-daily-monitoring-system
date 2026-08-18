@@ -107,7 +107,10 @@ export default function PublicVisitorRegister() {
         visit_time: parts[1] || '',
       }));
     } else {
-      setForm(prev => ({ ...prev, [name]: value }));
+      // Auto uppercase for text inputs to ensure clean and standardized data
+      const uppercaseFields = ['name', 'company', 'vehicle_number', 'department_manual', 'pic_manual', 'purpose'];
+      const formattedValue = uppercaseFields.includes(name) ? value.toUpperCase() : value;
+      setForm(prev => ({ ...prev, [name]: formattedValue }));
     }
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     if (errors.visit_date && name === 'visit_datetime') setErrors(prev => ({ ...prev, visit_date: '' }));
@@ -264,7 +267,8 @@ export default function PublicVisitorRegister() {
                     <input
                       name="name" value={form.name} onChange={handleChange}
                       placeholder="Masukkan nama lengkap Anda"
-                      className={`${inputClass} pl-10 ${errors.name ? 'border-red-400' : ''}`}
+                      className={`${inputClass} pl-10 uppercase ${errors.name ? 'border-red-400' : ''}`}
+                      style={{ textTransform: 'uppercase' }}
                     />
                   </div>
                   {errors.name && <p className={errorClass}>{errors.name}</p>}
@@ -297,7 +301,8 @@ export default function PublicVisitorRegister() {
                     <input
                       name="company" value={form.company} onChange={handleChange}
                       placeholder="Nama perusahaan / instansi Anda"
-                      className={`${inputClass} pl-10 ${errors.company ? 'border-red-400' : ''}`}
+                      className={`${inputClass} pl-10 uppercase ${errors.company ? 'border-red-400' : ''}`}
+                      style={{ textTransform: 'uppercase' }}
                     />
                   </div>
                   {errors.company && <p className={errorClass}>{errors.company}</p>}
@@ -329,7 +334,8 @@ export default function PublicVisitorRegister() {
                     <input
                       name="vehicle_number" value={form.vehicle_number} onChange={handleChange}
                       placeholder="Contoh: B 1234 XYZ (opsional)"
-                      className={`${inputClass} pl-10`}
+                      className={`${inputClass} pl-10 uppercase`}
+                      style={{ textTransform: 'uppercase' }}
                     />
                   </div>
                 </div>
@@ -365,7 +371,8 @@ export default function PublicVisitorRegister() {
                     <input
                       name="department_manual" value={form.department_manual} onChange={handleChange}
                       placeholder="Contoh: HRD, Finance, Produksi..."
-                      className={`${inputClass} pl-10 ${errors.department_manual ? 'border-red-400' : ''}`}
+                      className={`${inputClass} pl-10 uppercase ${errors.department_manual ? 'border-red-400' : ''}`}
+                      style={{ textTransform: 'uppercase' }}
                     />
                   </div>
                   {errors.department_manual && <p className={errorClass}>{errors.department_manual}</p>}
@@ -381,7 +388,8 @@ export default function PublicVisitorRegister() {
                     <input
                       name="pic_manual" value={form.pic_manual} onChange={handleChange}
                       placeholder="Nama orang yang akan ditemui"
-                      className={`${inputClass} pl-10 ${errors.pic_manual ? 'border-red-400' : ''}`}
+                      className={`${inputClass} pl-10 uppercase ${errors.pic_manual ? 'border-red-400' : ''}`}
+                      style={{ textTransform: 'uppercase' }}
                     />
                   </div>
                   {errors.pic_manual && <p className={errorClass}>{errors.pic_manual}</p>}
@@ -395,7 +403,8 @@ export default function PublicVisitorRegister() {
                   <textarea
                     name="purpose" value={form.purpose} onChange={handleChange}
                     rows={3} placeholder="Jelaskan tujuan kunjungan Anda..."
-                    className={`${inputClass} resize-none ${errors.purpose ? 'border-red-400' : ''}`}
+                    className={`${inputClass} resize-none uppercase ${errors.purpose ? 'border-red-400' : ''}`}
+                    style={{ textTransform: 'uppercase' }}
                   />
                   {errors.purpose && <p className={errorClass}>{errors.purpose}</p>}
                 </div>
