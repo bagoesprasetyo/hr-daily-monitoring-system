@@ -7,6 +7,7 @@ import {
   Clock, ShieldCheck, X, RefreshCw, KeyRound,
   ScanLine, Users, ArrowRightLeft, Package
 } from 'lucide-react';
+import Pagination from '../components/Pagination';
 
 // ── Status Config ──────────────────────────────────────────────────────────
 
@@ -552,6 +553,8 @@ export default function VisitorVerification() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('WAITING_PASS');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [modal, setModal] = useState(null); // null | 'assign' | 'scan' | 'checkout'
   const [toast, setToast] = useState(null);
@@ -677,6 +680,9 @@ export default function VisitorVerification() {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginatedVisitors = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   const tabConfig = [
     { key: 'WAITING_PASS', label: 'Waiting Pass', icon: Clock, color: 'text-amber-600', count: dashStats?.waiting },
     { key: 'INSIDE', label: 'Di Area (Gate Assigned)', icon: ShieldCheck, color: 'text-emerald-600' },
@@ -748,121 +754,109 @@ export default function VisitorVerification() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-text-primary flex items-center gap-2">
-            <ClipboardCheck className="w-6 h-6 text-surface-strong" />
-            Visitor Gate Dashboard
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Monitor dan kelola visitor secara realtime</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
+              <ClipboardCheck className="w-6 h-6 text-surface-strong" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-gray-800">Visitor Gate Dashboard</h1>
+              <p className="text-xs text-gray-400 mt-0.5">Monitor dan kelola visitor secara realtime</p>
+            </div>
+          </div>
         </div>
         <button
           onClick={() => { fetchVisitors(); fetchDashboard(); fetchPasses(); }}
-          className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 shadow-sm transition-all"
         >
-          <RefreshCw className="w-4 h-4" /> Refresh
+          <RefreshCw className="w-3.5 h-3.5" />
+          Refresh
         </button>
       </div>
 
       {/* Summary Cards */}
-      {dashStats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <SummaryCard label="Waiting Pass" value={dashStats.waiting} icon={Clock} color="text-amber-700" bgColor="bg-amber-50" />
-          <SummaryCard label="Sedang di Area" value={dashStats.inside} icon={Users} color="text-emerald-700" bgColor="bg-emerald-50" />
-          <SummaryCard label="Selesai Hari Ini" value={dashStats.completed} icon={CheckCircle2} color="text-blue-700" bgColor="bg-blue-50" />
-          <SummaryCard label="Pass Digunakan" value={dashStats.passInUse} icon={CreditCard} color="text-purple-700" bgColor="bg-purple-50" />
-        </div>
-      )}
-
-      {/* Pass Status Overview Section */}
-      {passes.length > 0 && (
-        <div className="mb-5 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-surface-strong" />
-              <div>
-                <h3 className="text-sm font-bold text-gray-800">Status Registration Pass (Kartu Fisik M01–M10)</h3>
-                <p className="text-xs text-gray-500">
-                  Tersedia: <span className="font-bold text-emerald-600">{passes.filter(p => p.status === 'AVAILABLE').length}</span> ·
-                  Digunakan: <span className="font-bold text-red-600">{passes.filter(p => p.status === 'IN_USE').length}</span> ·
-                  Hilang/Rusak: <span className="font-bold text-gray-500">{passes.filter(p => p.status === 'LOST').length}</span>
-                </p>
-              </div>
-            </div>
-            <a
-              href="/visitor/settings"
-              className="text-xs font-bold text-surface-strong hover:underline bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 flex items-center gap-1"
-            >
-              Kelola Pass →
-            </a>
-          </div>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {passes.map(p => (
-              <div
-                key={p.id}
-                title={`Pass ${p.pass_code}: ${p.status}`}
-                className={`py-2.5 px-2 rounded-xl text-center border-2 transition-all ${
-                  p.status === 'AVAILABLE'
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-extrabold shadow-sm'
-                    : p.status === 'IN_USE'
-                    ? 'bg-red-50 border-red-200 text-red-700 font-bold opacity-80'
-                    : 'bg-gray-100 border-gray-200 text-gray-400 font-normal'
-                }`}
-              >
-                <p className="text-sm font-black tracking-wide">{p.pass_code}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-tight mt-0.5">
-                  {p.status === 'AVAILABLE' ? 'Tersedia' : p.status === 'IN_USE' ? 'Terpakai' : 'Rusak'}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1.5 mb-5 bg-gray-100/90 p-1.5 rounded-2xl w-fit border border-gray-200/80 shadow-2xs">
-        {tabConfig.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 ease-out cursor-pointer select-none
-              ${activeTab === tab.key
-                ? 'bg-white shadow-xs text-surface-strong border border-gray-200/90'
-                : 'text-gray-500 hover:text-gray-800 hover:bg-white/60'}`}
-          >
-            <tab.icon className={`w-4 h-4 transition-colors duration-200 ${activeTab === tab.key ? tab.color : 'text-gray-400'}`} />
-            <span>{tab.label}</span>
-            {tab.count != null && tab.count > 0 && (
-              <span className={`ml-1 rounded-full px-2 py-0.5 text-[10px] font-black transition-all ${
-                activeTab === tab.key ? 'bg-surface-strong text-white shadow-2xs' : 'bg-gray-200 text-gray-600'
-              }`}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative mb-5">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Cari nama, reg. no., perusahaan, PIC, department, atau kode pass..."
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-surface-strong/30 focus:border-surface-strong transition-all"
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <SummaryCard
+          label="Waiting Pass"
+          value={dashStats?.waiting ?? 0}
+          icon={Clock}
+          color="text-amber-600"
+          bgColor="bg-amber-50"
         />
-        {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        <SummaryCard
+          label="Sedang Di Area"
+          value={dashStats?.inside ?? 0}
+          icon={Users}
+          color="text-emerald-600"
+          bgColor="bg-emerald-50"
+        />
+        <SummaryCard
+          label="Selesai Hari Ini"
+          value={dashStats?.completed_today ?? 0}
+          icon={CheckCircle2}
+          color="text-blue-600"
+          bgColor="bg-blue-50"
+        />
+        <SummaryCard
+          label="Pass Digunakan"
+          value={dashStats?.passes?.in_use ?? 0}
+          icon={CreditCard}
+          color="text-purple-600"
+          bgColor="bg-purple-50"
+        />
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[300px]">
-        {loading && visitors.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-gray-400 animate-tab-fade">
-            <Loader2 className="w-7 h-7 animate-spin mb-2.5 text-surface-strong" />
-            <p className="text-xs font-medium">Memuat data visitor...</p>
+      {/* Pass Status Bar */}
+      <PassStatusBar passes={passes} />
+
+      {/* Main Content: Tabs + Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+
+        {/* Tab Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 flex-wrap gap-3">
+          {/* Tabs */}
+          <div className="flex items-center gap-2">
+            {tabConfig.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all
+                    ${isActive
+                      ? 'bg-blue-50 text-surface-strong shadow-sm border border-blue-100'
+                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'}`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-surface-strong' : 'text-gray-400'}`} />
+                  {tab.label}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-surface-strong text-white' : 'bg-gray-100 text-gray-600'}`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search */}
+          <div className="relative min-w-[280px]">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari nama, reg. no., perusahaan, PIC, department, atau kode pass..."
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-surface-strong transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
+            <Loader2 className="w-8 h-8 animate-spin text-surface-strong" />
+            <p className="text-xs font-semibold uppercase tracking-wider">Memuat Data Visitor...</p>
           </div>
         ) : (
           <div key={activeTab} className="animate-tab-fade">
@@ -899,7 +893,7 @@ export default function VisitorVerification() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(v => (
+                    {paginatedVisitors.map(v => (
                       <VisitorRow
                         key={v.id}
                         v={v}
@@ -922,15 +916,21 @@ export default function VisitorVerification() {
                 </table>
               </div>
             )}
+
+            {/* Pagination Component */}
+            {filtered.length > 0 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+                itemName="visitor"
+              />
+            )}
           </div>
         )}
       </div>
-
-      {filtered.length > 0 && (
-        <p className="text-xs text-gray-400 mt-3 text-right">
-          Menampilkan {filtered.length} visitor
-        </p>
-      )}
     </div>
   );
 }
