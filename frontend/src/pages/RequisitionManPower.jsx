@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+import socket from '../services/socket';
 import {
   UserPlus, Search, RefreshCw, Plus, CheckCircle2, XCircle,
   Clock, AlertCircle, Eye, Edit3, Trash2, Send, Check,
@@ -202,6 +203,31 @@ export default function RequisitionManPower({ user }) {
 
   useEffect(() => {
     fetchData();
+    const onReqUpdate = () => { fetchData(); };
+    socket.on('requisition:created', onReqUpdate);
+    socket.on('requisition:updated', onReqUpdate);
+    socket.on('requisition:deleted', onReqUpdate);
+    socket.on('requisition:approved-dept-head', onReqUpdate);
+    socket.on('requisition:approved-div-head', onReqUpdate);
+    socket.on('requisition:approved-bod', onReqUpdate);
+    socket.on('requisition:forwarded-hrd', onReqUpdate);
+    socket.on('requisition:approved', onReqUpdate);
+    socket.on('requisition:rejected', onReqUpdate);
+    socket.on('requisition:recruitment', onReqUpdate);
+    socket.on('requisition:closed', onReqUpdate);
+    return () => {
+      socket.off('requisition:created', onReqUpdate);
+      socket.off('requisition:updated', onReqUpdate);
+      socket.off('requisition:deleted', onReqUpdate);
+      socket.off('requisition:approved-dept-head', onReqUpdate);
+      socket.off('requisition:approved-div-head', onReqUpdate);
+      socket.off('requisition:approved-bod', onReqUpdate);
+      socket.off('requisition:forwarded-hrd', onReqUpdate);
+      socket.off('requisition:approved', onReqUpdate);
+      socket.off('requisition:rejected', onReqUpdate);
+      socket.off('requisition:recruitment', onReqUpdate);
+      socket.off('requisition:closed', onReqUpdate);
+    };
   }, [fetchData]);
 
   // Open Create Modal

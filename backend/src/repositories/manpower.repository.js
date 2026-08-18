@@ -117,8 +117,8 @@ class ManpowerRepository {
       LEFT JOIN users u_updater ON mr.updated_by = u_updater.id
       ${where}
       ORDER BY mr.created_at DESC
-      LIMIT ? OFFSET ?
-    `, [...params, numLimit, offset]);
+      LIMIT ${numLimit} OFFSET ${offset}
+    `, params);
 
     return { rows, total, page: numPage, limit: numLimit, totalPages: Math.ceil(total / numLimit) };
   }
