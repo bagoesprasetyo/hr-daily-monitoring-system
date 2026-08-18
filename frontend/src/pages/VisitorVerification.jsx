@@ -779,34 +779,76 @@ export default function VisitorVerification() {
           label="Waiting Pass"
           value={dashStats?.waiting ?? 0}
           icon={Clock}
-          color="text-amber-600"
+          color="text-amber-700"
           bgColor="bg-amber-50"
         />
         <SummaryCard
           label="Sedang Di Area"
           value={dashStats?.inside ?? 0}
           icon={Users}
-          color="text-emerald-600"
+          color="text-emerald-700"
           bgColor="bg-emerald-50"
         />
         <SummaryCard
           label="Selesai Hari Ini"
-          value={dashStats?.completed_today ?? 0}
+          value={dashStats?.completed ?? 0}
           icon={CheckCircle2}
-          color="text-blue-600"
+          color="text-blue-700"
           bgColor="bg-blue-50"
         />
         <SummaryCard
           label="Pass Digunakan"
-          value={dashStats?.passes?.in_use ?? 0}
+          value={dashStats?.passInUse ?? (passes.filter(p => p.status === 'IN_USE').length)}
           icon={CreditCard}
-          color="text-purple-600"
+          color="text-purple-700"
           bgColor="bg-purple-50"
         />
       </div>
 
-      {/* Pass Status Bar */}
-      <PassStatusBar passes={passes} />
+      {/* Pass Status Overview Section */}
+      {passes.length > 0 && (
+        <div className="mb-5 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-surface-strong" />
+              <div>
+                <h3 className="text-sm font-bold text-gray-800">Status Registration Pass (Kartu Fisik M01–M10)</h3>
+                <p className="text-xs text-gray-500">
+                  Tersedia: <span className="font-bold text-emerald-600">{passes.filter(p => p.status === 'AVAILABLE').length}</span> ·
+                  Digunakan: <span className="font-bold text-red-600">{passes.filter(p => p.status === 'IN_USE').length}</span> ·
+                  Hilang/Rusak: <span className="font-bold text-gray-500">{passes.filter(p => p.status === 'LOST').length}</span>
+                </p>
+              </div>
+            </div>
+            <a
+              href="/visitor/settings"
+              className="text-xs font-bold text-surface-strong hover:underline bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 flex items-center gap-1"
+            >
+              Kelola Pass →
+            </a>
+          </div>
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+            {passes.map(p => (
+              <div
+                key={p.id}
+                title={`Pass ${p.pass_code}: ${p.status}`}
+                className={`py-2.5 px-2 rounded-xl text-center border-2 transition-all ${
+                  p.status === 'AVAILABLE'
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-extrabold shadow-sm'
+                    : p.status === 'IN_USE'
+                    ? 'bg-red-50 border-red-200 text-red-700 font-bold opacity-80'
+                    : 'bg-gray-100 border-gray-200 text-gray-400 font-normal'
+                }`}
+              >
+                <p className="text-sm font-black tracking-wide">{p.pass_code}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-tight mt-0.5">
+                  {p.status === 'AVAILABLE' ? 'Tersedia' : p.status === 'IN_USE' ? 'Terpakai' : 'Rusak'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Content: Tabs + Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
