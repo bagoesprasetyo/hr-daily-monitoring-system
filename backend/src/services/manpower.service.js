@@ -87,6 +87,10 @@ class ManpowerService {
     const existing = await manpowerRepo.getRequisitionById(id);
     if (!existing) throw new Error('Pengajuan Requisition tidak ditemukan.');
 
+    if (actor.role === 'admin_departemen' && actor.department_id && existing.department_id !== actor.department_id) {
+      throw new Error('Anda tidak memiliki izin menyetujui pengajuan departemen lain.');
+    }
+
     if (existing.status !== 'DRAFT') {
       throw new Error('Hanya pengajuan berstatus DRAFT yang dapat diapprove untuk Dept Head.');
     }
@@ -101,6 +105,10 @@ class ManpowerService {
   async approveDivHead(id, actor, notes) {
     const existing = await manpowerRepo.getRequisitionById(id);
     if (!existing) throw new Error('Pengajuan Requisition tidak ditemukan.');
+
+    if (actor.role === 'admin_departemen' && actor.department_id && existing.department_id !== actor.department_id) {
+      throw new Error('Anda tidak memiliki izin menyetujui pengajuan departemen lain.');
+    }
 
     if (existing.status !== 'WAITING_DEPT_HEAD') {
       throw new Error('Hanya pengajuan berstatus WAITING_DEPT_HEAD yang dapat diapprove untuk Div Head.');
@@ -117,6 +125,10 @@ class ManpowerService {
     const existing = await manpowerRepo.getRequisitionById(id);
     if (!existing) throw new Error('Pengajuan Requisition tidak ditemukan.');
 
+    if (actor.role === 'admin_departemen' && actor.department_id && existing.department_id !== actor.department_id) {
+      throw new Error('Anda tidak memiliki izin menyetujui pengajuan departemen lain.');
+    }
+
     if (existing.status !== 'WAITING_DIV_HEAD') {
       throw new Error('Hanya pengajuan berstatus WAITING_DIV_HEAD yang dapat diapprove untuk BOD.');
     }
@@ -131,6 +143,10 @@ class ManpowerService {
   async forwardToHrd(id, actor, notes) {
     const existing = await manpowerRepo.getRequisitionById(id);
     if (!existing) throw new Error('Pengajuan Requisition tidak ditemukan.');
+
+    if (actor.role === 'admin_departemen' && actor.department_id && existing.department_id !== actor.department_id) {
+      throw new Error('Anda tidak memiliki izin meneruskan pengajuan departemen lain.');
+    }
 
     if (existing.status !== 'WAITING_BOD') {
       throw new Error('Hanya pengajuan berstatus WAITING_BOD yang dapat diteruskan ke HRD.');

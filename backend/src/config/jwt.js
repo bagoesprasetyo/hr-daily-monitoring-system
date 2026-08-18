@@ -1,7 +1,18 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
+let secret = process.env.JWT_SECRET;
+if (!secret || secret === 'default-secret-change-me') {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ [SECURITY WARNING] JWT_SECRET is not set in production. Using auto-generated 256-bit runtime secret for token signing.');
+    secret = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+  } else {
+    secret = 'default-secret-change-me';
+  }
+}
 
 const jwtConfig = {
-  secret: process.env.JWT_SECRET || 'default-secret-change-me',
+  secret,
   accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
   refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 };

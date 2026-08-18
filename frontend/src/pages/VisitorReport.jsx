@@ -122,7 +122,13 @@ export default function VisitorReport() {
       v.vehicle_number || '-', v.total_person, STATUS_LABEL[v.status] || v.status,
       v.created_by_name || 'Registrasi Mandiri (QR)', v.verified_by_name || v.assigned_by_name || '-'
     ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const sanitizeCsvCell = (val) => {
+      if (val === null || val === undefined) return '""';
+      let str = String(val).replace(/"/g, '""');
+      if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+      return `"${str}"`;
+    };
+    const csv = [headers, ...rows].map(r => r.map(sanitizeCsvCell).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
