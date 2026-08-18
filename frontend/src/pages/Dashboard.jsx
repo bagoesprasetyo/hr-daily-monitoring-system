@@ -228,18 +228,33 @@ export default function Dashboard() {
 
   const renderVisitorSection = () => {
     const vStats = visitorData || {
-      today: 0, waiting: 0, inside: 0, completed: 0, rejected: 0, chart: [], realtime: []
+      today: 0, waiting: 0, inside: 0, completed: 0, rejected: 0, chart: [], realtime: [], insideList: [], waitingList: []
     };
     const maxChartCount = Math.max(...(vStats.chart || []).map(c => c.count), 1);
 
+    const activeVisitors = (vStats.realtime && vStats.realtime.length > 0)
+      ? vStats.realtime
+      : [...(vStats.insideList || []), ...(vStats.waitingList || [])];
+
     const STATUS_BADGE = {
-      REGISTERED: 'bg-amber-100 text-amber-700',
-      VERIFIED: 'bg-emerald-100 text-emerald-700',
+      WAITING_PASS: 'bg-amber-100 text-amber-800 border border-amber-300',
+      REGISTERED: 'bg-blue-100 text-blue-700 border border-blue-200',
+      INSIDE: 'bg-emerald-100 text-emerald-700 border border-emerald-300',
+      VERIFIED: 'bg-purple-100 text-purple-700 border border-purple-300',
+      CHECKED_OUT: 'bg-gray-100 text-gray-600',
       COMPLETED: 'bg-gray-100 text-gray-600',
       REJECTED: 'bg-red-100 text-red-700',
+      CANCELLED: 'bg-gray-100 text-gray-500',
     };
     const STATUS_LABEL = {
-      REGISTERED: 'Menunggu', VERIFIED: 'Di Area', COMPLETED: 'Selesai', REJECTED: 'Ditolak',
+      WAITING_PASS: 'Waiting Pass',
+      REGISTERED: 'Terdaftar',
+      INSIDE: 'Di Area',
+      VERIFIED: 'Terverifikasi',
+      CHECKED_OUT: 'Selesai',
+      COMPLETED: 'Selesai',
+      REJECTED: 'Ditolak',
+      CANCELLED: 'Dibatalkan',
     };
 
     return (
@@ -336,7 +351,7 @@ export default function Dashboard() {
               </h3>
               <span className="text-xs text-gray-400 font-medium">Auto-sync</span>
             </div>
-            {vStats.realtime && vStats.realtime.length > 0 ? (
+            {activeVisitors && activeVisitors.length > 0 ? (
               <div className="overflow-x-auto max-h-60 overflow-y-auto">
                 <table className="w-full text-xs">
                   <thead>
@@ -344,12 +359,12 @@ export default function Dashboard() {
                       <th className="text-left py-2 px-3">Visitor</th>
                       <th className="text-left py-2 px-3">Perusahaan</th>
                       <th className="text-left py-2 px-3">Pass</th>
-                      <th className="text-left py-2 px-3">PIC</th>
+                      <th className="text-left py-2 px-3">PIC / Dept</th>
                       <th className="text-left py-2 px-3">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {vStats.realtime.map((r) => (
+                    {activeVisitors.map((r) => (
                       <tr key={r.id} className="hover:bg-gray-50/60">
                         <td className="py-2.5 px-3 font-semibold text-text-primary">{r.name}</td>
                         <td className="py-2.5 px-3 text-gray-500">{r.company || '-'}</td>
@@ -358,10 +373,13 @@ export default function Dashboard() {
                             {r.pass_code || '-'}
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-gray-500">{r.host_name || '-'}</td>
+                        <td className="py-2.5 px-3 text-gray-500">
+                          <span className="font-medium text-gray-700">{r.host_name || '-'}</span>
+                          {r.department_name && <span className="text-[10px] text-gray-400 block">{r.department_name}</span>}
+                        </td>
                         <td className="py-2.5 px-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[r.status]}`}>
-                            {STATUS_LABEL[r.status]}
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${STATUS_BADGE[r.status] || STATUS_BADGE.REGISTERED}`}>
+                            {STATUS_LABEL[r.status] || r.status}
                           </span>
                         </td>
                       </tr>

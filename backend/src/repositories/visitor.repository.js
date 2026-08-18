@@ -551,6 +551,7 @@ class VisitorRepository {
       chart: chartRows,
       waitingList,
       insideList,
+      realtime: [...insideList, ...waitingList],
     };
   }
 
