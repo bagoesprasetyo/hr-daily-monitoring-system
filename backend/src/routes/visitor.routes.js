@@ -9,12 +9,6 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-// ── OCR — Baca KTP dan kembalikan data terstruktur ─────────────────────────
-router.post('/ocr',
-  authorizeRole(ROLES.ADMINISTRATOR, ROLES.SECURITY, ROLES.SECURITY_GATE, ROLES.HRD),
-  ctrl.performOCR.bind(ctrl)
-);
-
 // ── QR Registration Token ─────────────────────────────────────────────────
 // GET active QR token — Security Gate and Administrator
 router.get(

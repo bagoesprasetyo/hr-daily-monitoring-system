@@ -1,7 +1,6 @@
 const visitorRepo = require('../repositories/visitor.repository');
 const { getPool } = require('../config/database');
 const { ROLES } = require('../config/roles');
-const { performOCR } = require('../services/ocr.service');
 const { emitRealtimeEvent } = require('../utils/socket');
 
 class VisitorController {
@@ -416,25 +415,6 @@ class VisitorController {
       const logs = await visitorRepo.getAuditLogs(id);
       res.json({ success: true, data: logs });
     } catch (err) { next(err); }
-  }
-
-  // ── OCR ─────────────────────────────────────────────────────
-
-  async performOCR(req, res, next) {
-    try {
-      const { image } = req.body;
-      if (!image || typeof image !== 'string' || image.length < 100) {
-        return res.status(400).json({ success: false, message: 'Gambar (base64) wajib dikirim.' });
-      }
-      const result = await performOCR(image);
-      console.log('--- RAW OCR TEXT ---');
-      console.log(result.text);
-      console.log('--- PARSED KTP RESULT ---');
-      console.log(JSON.stringify(result.parsed, null, 2));
-      return res.json({ success: true, parsed: result.parsed, text: result.text });
-    } catch (err) {
-      next(err);
-    }
   }
 }
 

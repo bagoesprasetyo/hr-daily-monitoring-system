@@ -12,9 +12,6 @@ RUN npm run build
 FROM node:20-alpine
 WORKDIR /app
 
-# Install native dependencies for sharp & tesseract if required
-RUN apk add --no-cache vips-dev python3 make g++
-
 WORKDIR /app/backend
 COPY backend/package*.json ./
 RUN npm install --production
