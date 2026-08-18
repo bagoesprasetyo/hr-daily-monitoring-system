@@ -62,13 +62,15 @@ export default function Dashboard() {
       setData(res.data);
 
       // Fetch visitor stats if applicable
-      if (['security_gate', 'security', 'hrd', 'administrator'].includes(role)) {
+      if (['security', 'hrd', 'administrator'].includes(role)) {
         try {
           const vRes = await request(`/visitor/dashboard?date=${selectedDate}&_t=${timestamp}`);
           setVisitorData(vRes.data);
         } catch (vErr) {
           console.error('Failed to load visitor stats:', vErr);
         }
+      } else if (role === 'security_gate') {
+        setVisitorData(res.data);
       }
 
       setError(null);

@@ -2,12 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
 const path = require('path');
+
+// ── HTTP Gzip Compression (Reduces bandwidth by ~75% for instant page loads) ──
+app.use(compression({
+  threshold: 1024,
+  level: 6,
+}));
 
 // ── Security Middleware ─────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -51,7 +58,21 @@ const candidatePaths = [
 ];
 const frontendDistPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
 
-app.use(express.static(frontendDistPath));
+// Serve hashed immutable assets with 1 year browser cache
+app.use('/assets', express.static(path.join(frontendDistPath, 'assets'), {
+  maxAge: '1y',
+  immutable: true,
+}));
+
+// Serve remaining static files (index.html, logo, etc.)
+app.use(express.static(frontendDistPath, {
+  maxAge: '1h',
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  },
+}));
 
 // ── SPA Fallback for Frontend Routes ─────────────────────────
 app.get('*', (req, res, next) => {
