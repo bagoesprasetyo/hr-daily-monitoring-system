@@ -109,6 +109,8 @@ class AdminDeptController {
         [id, deptId, shift_type, attendance_date, hadir || 0, dispen || 0, izin || 0, sakit || 0, alpha || 0, req.user.id]
       );
       const [rows] = await pool.execute('SELECT * FROM attendances WHERE id = ?', [id]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, action: 'create' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.status(201).json({ success: true, message: 'Attendance berhasil disimpan.', data: rows[0] });
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
@@ -132,6 +134,8 @@ class AdminDeptController {
         [shift_type, attendance_date, hadir || 0, dispen || 0, izin || 0, sakit || 0, alpha || 0, req.params.id, deptId]
       );
       const [rows] = await pool.execute('SELECT * FROM attendances WHERE id = ?', [req.params.id]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, action: 'update' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Attendance berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -144,6 +148,8 @@ class AdminDeptController {
       if (existing.length === 0) return res.status(404).json({ success: false, message: 'Data tidak ditemukan.' });
 
       await pool.execute('DELETE FROM attendances WHERE id = ? AND department_id = ?', [req.params.id, deptId]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, action: 'delete' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Attendance berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -379,6 +385,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT d.*, dept.name as department_name FROM dispen_records d JOIN departments dept ON d.department_id = dept.id WHERE d.id = ?`, [id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'dispen' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.status(201).json({ success: true, message: 'Data dispen berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -396,6 +404,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT d.*, dept.name as department_name FROM dispen_records d JOIN departments dept ON d.department_id = dept.id WHERE d.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'dispen' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data dispen berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -405,6 +415,8 @@ class AdminDeptController {
       const pool = getPool();
       const deptId = req.user.departmentId;
       await pool.execute('DELETE FROM dispen_records WHERE id = ? AND department_id = ?', [req.params.id, deptId]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'dispen' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data dispen berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -440,6 +452,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT i.*, dept.name as department_name FROM izin_records i JOIN departments dept ON i.department_id = dept.id WHERE i.id = ?`, [id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'izin' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.status(201).json({ success: true, message: 'Data izin berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -457,6 +471,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT i.*, dept.name as department_name FROM izin_records i JOIN departments dept ON i.department_id = dept.id WHERE i.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'izin' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data izin berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -466,6 +482,8 @@ class AdminDeptController {
       const pool = getPool();
       const deptId = req.user.departmentId;
       await pool.execute('DELETE FROM izin_records WHERE id = ? AND department_id = ?', [req.params.id, deptId]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'izin' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data izin berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -501,6 +519,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT s.*, dept.name as department_name FROM sakit_records s JOIN departments dept ON s.department_id = dept.id WHERE s.id = ?`, [id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'sakit' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.status(201).json({ success: true, message: 'Data sakit berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -518,6 +538,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT s.*, dept.name as department_name FROM sakit_records s JOIN departments dept ON s.department_id = dept.id WHERE s.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'sakit' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data sakit berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -527,6 +549,8 @@ class AdminDeptController {
       const pool = getPool();
       const deptId = req.user.departmentId;
       await pool.execute('DELETE FROM sakit_records WHERE id = ? AND department_id = ?', [req.params.id, deptId]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'sakit' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data sakit berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -562,6 +586,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT a.*, dept.name as department_name FROM alpha_records a JOIN departments dept ON a.department_id = dept.id WHERE a.id = ?`, [id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'alpha' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.status(201).json({ success: true, message: 'Data alpha berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -579,6 +605,8 @@ class AdminDeptController {
       const [rows] = await pool.execute(
         `SELECT a.*, dept.name as department_name FROM alpha_records a JOIN departments dept ON a.department_id = dept.id WHERE a.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'alpha' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data alpha berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -588,6 +616,8 @@ class AdminDeptController {
       const pool = getPool();
       const deptId = req.user.departmentId;
       await pool.execute('DELETE FROM alpha_records WHERE id = ? AND department_id = ?', [req.params.id, deptId]);
+      emitRealtimeEvent('attendance:updated', { department_id: deptId, type: 'alpha' });
+      emitRealtimeEvent('dashboard:updated', { type: 'attendance', department_id: deptId });
       res.json({ success: true, message: 'Data alpha berhasil dihapus.' });
     } catch (error) { next(error); }
   }

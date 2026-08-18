@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import socket from '../services/socket';
 import EmployeeListEditor from '../components/EmployeeListEditor';
 import Pagination from '../components/Pagination';
 
@@ -58,7 +59,18 @@ export default function Attendance({ user }) {
     }
   };
 
-  useEffect(() => { fetchAllData(); }, []);
+  useEffect(() => {
+    fetchAllData();
+    const onRealtimeUpdate = () => {
+      fetchAllData();
+    };
+    socket.on('attendance:updated', onRealtimeUpdate);
+    socket.on('dashboard:updated', onRealtimeUpdate);
+    return () => {
+      socket.off('attendance:updated', onRealtimeUpdate);
+      socket.off('dashboard:updated', onRealtimeUpdate);
+    };
+  }, []);
 
   // ── REKAP ATTENDANCE HANDLERS ──
   const handleOpenAdd = () => {
