@@ -258,7 +258,13 @@ export default function PublicVisitorConfirmation() {
         {/* Timestamp */}
         {visitor.created_at && (
           <p className="text-center text-xs text-gray-400">
-            Didaftarkan pada {new Date(visitor.created_at).toLocaleString('id-ID')}
+            Didaftarkan pada {(() => {
+              const s = String(visitor.created_at).trim();
+              let iso = s.replace(' ', 'T');
+              if (!iso.endsWith('Z') && !iso.includes('+')) iso += 'Z';
+              const d = new Date(iso);
+              return isNaN(d.getTime()) ? visitor.created_at : d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+            })()}
           </p>
         )}
       </div>

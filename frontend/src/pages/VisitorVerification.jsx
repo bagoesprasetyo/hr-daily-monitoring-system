@@ -33,14 +33,48 @@ const STATUS_LABEL = {
   CANCELLED:     'Dibatalkan',
 };
 
+function parseToDate(dt) {
+  if (!dt) return null;
+  const s = String(dt).trim();
+  let isoStr = s.replace(' ', 'T');
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?$/.test(isoStr)) {
+    isoStr += 'Z';
+  }
+  const date = new Date(isoStr);
+  return isNaN(date.getTime()) ? null : date;
+}
+
 function formatTime(dt) {
   if (!dt) return '—';
   try {
     const s = String(dt).trim();
     if (/^\d{2}:\d{2}(:\d{2})?$/.test(s)) return s.slice(0, 5);
-    const date = new Date(s.includes('T') ? s : s.replace(' ', 'T'));
-    if (isNaN(date.getTime())) return dt;
-    return date.toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(' pukul ', ', ');
+    const date = parseToDate(dt);
+    if (!date) return dt;
+    return date.toLocaleString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    }).replace(' pukul ', ', ');
+  } catch { return dt; }
+}
+
+function formatFullDateTime(dt) {
+  if (!dt) return '—';
+  try {
+    const date = parseToDate(dt);
+    if (!date) return dt;
+    return date.toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    }).replace(' pukul ', ', ');
   } catch { return dt; }
 }
 
@@ -427,7 +461,7 @@ function DetailModal({ visitor, onClose, onAssign, onScan, onVerify, onCheckout 
 
           {/* Audit info */}
           <div className="pt-3 border-t border-gray-100 text-xs text-gray-400">
-            <p>Registrasi: {visitor.created_at ? new Date(visitor.created_at).toLocaleString('id-ID') : '—'}</p>
+            <p>Registrasi: {visitor.created_at ? formatFullDateTime(visitor.created_at) : '—'}</p>
             {visitor.assigned_by_name && <p>Assign Pass oleh: {visitor.assigned_by_name}</p>}
             {visitor.checkout_by_name && <p>Checkout oleh: {visitor.checkout_by_name}</p>}
           </div>

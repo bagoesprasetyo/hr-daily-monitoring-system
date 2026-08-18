@@ -1113,7 +1113,15 @@ export default function RequisitionManPower({ user }) {
                       <div className="flex-1 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs space-y-1">
                         <div className="flex items-center justify-between font-bold text-gray-800">
                           <span>{log.actor_name} <span className="text-gray-400 font-normal">({log.actor_role})</span></span>
-                          <span className="text-[10px] text-gray-400">{new Date(log.created_at).toLocaleString('id-ID')}</span>
+                          <span className="text-[10px] text-gray-400">
+                            {(() => {
+                              const s = String(log.created_at).trim();
+                              let iso = s.replace(' ', 'T');
+                              if (!iso.endsWith('Z') && !iso.includes('+')) iso += 'Z';
+                              const d = new Date(iso);
+                              return isNaN(d.getTime()) ? log.created_at : d.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+                            })()}
+                          </span>
                         </div>
                         <p className="text-gray-600 font-semibold">
                           {log.previous_status ? `${log.previous_status} ➔ ` : ''}
