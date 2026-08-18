@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Building2, Search, Loader2 } from 'lucide-react';
 import api from '../services/api';
+import socket from '../services/socket';
 import Pagination from '../components/Pagination';
 
 export default function DepartmentManagement() {
@@ -22,6 +23,9 @@ export default function DepartmentManagement() {
 
   useEffect(() => {
     fetchDepartments();
+    const onDeptUpdate = () => { fetchDepartments(); };
+    socket.on('departments:updated', onDeptUpdate);
+    return () => { socket.off('departments:updated', onDeptUpdate); };
   }, []);
 
   const fetchDepartments = async () => {

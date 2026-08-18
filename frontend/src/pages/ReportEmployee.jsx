@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { request } from '../services/api';
 import api from '../services/api';
+import socket from '../services/socket';
 import { Search, AlertCircle, Calendar, User, Plus, Pencil, Trash2, Building2 } from 'lucide-react';
 import Pagination from '../components/Pagination';
 
@@ -52,6 +53,13 @@ export default function ReportEmployee() {
   useEffect(() => {
     fetchReports();
     fetchDepartments();
+    const onReportUpdate = () => { fetchReports(); };
+    socket.on('attendance:updated', onReportUpdate);
+    socket.on('dashboard:updated', onReportUpdate);
+    return () => {
+      socket.off('attendance:updated', onReportUpdate);
+      socket.off('dashboard:updated', onReportUpdate);
+    };
   }, []);
 
   const handleOpenAdd = () => {

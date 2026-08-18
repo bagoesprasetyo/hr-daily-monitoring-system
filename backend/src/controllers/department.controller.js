@@ -1,4 +1,5 @@
 const departmentService = require('../services/department.service');
+const { emitRealtimeEvent } = require('../utils/socket');
 
 class DepartmentController {
   /**
@@ -72,6 +73,7 @@ class DepartmentController {
   async create(req, res, next) {
     try {
       const department = await departmentService.createDepartment(req.body);
+      emitRealtimeEvent('departments:updated', { action: 'create', id: department.id });
 
       res.status(201).json({
         success: true,
@@ -89,6 +91,7 @@ class DepartmentController {
   async update(req, res, next) {
     try {
       const department = await departmentService.updateDepartment(req.params.id, req.body);
+      emitRealtimeEvent('departments:updated', { action: 'update', id: department.id });
 
       res.status(200).json({
         success: true,
@@ -106,6 +109,7 @@ class DepartmentController {
   async delete(req, res, next) {
     try {
       const result = await departmentService.deleteDepartment(req.params.id);
+      emitRealtimeEvent('departments:updated', { action: 'delete', id: req.params.id });
 
       res.status(200).json({
         success: true,

@@ -1,5 +1,6 @@
 const { getPool } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
+const { emitRealtimeEvent } = require('../utils/socket');
 
 class SecurityController {
   // ── DASHBOARD ───────────────────────────────────────────────
@@ -66,7 +67,7 @@ class SecurityController {
     } catch (error) { next(error); }
   }
 
-  // ── TERLAMBAT CRUD ──────────────────────────────────────────
+  // ── LATE CRUD ───────────────────────────────────────────────
   async getLateRecords(req, res, next) {
     try {
       const pool = getPool();
@@ -91,6 +92,8 @@ class SecurityController {
       const [rows] = await pool.execute(
         `SELECT l.*, d.name as department_name FROM late_records l JOIN departments d ON l.department_id = d.id WHERE l.id = ?`, [id]
       );
+      emitRealtimeEvent('security:updated', { type: 'late', action: 'create' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.status(201).json({ success: true, message: 'Data terlambat berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -106,6 +109,8 @@ class SecurityController {
       const [rows] = await pool.execute(
         `SELECT l.*, d.name as department_name FROM late_records l JOIN departments d ON l.department_id = d.id WHERE l.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('security:updated', { type: 'late', action: 'update' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data terlambat berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -114,6 +119,8 @@ class SecurityController {
     try {
       const pool = getPool();
       await pool.execute('DELETE FROM late_records WHERE id = ?', [req.params.id]);
+      emitRealtimeEvent('security:updated', { type: 'late', action: 'delete' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data terlambat berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -133,16 +140,18 @@ class SecurityController {
   async createOutsideDuty(req, res, next) {
     try {
       const pool = getPool();
-      const { tanggal, nama, department_id, shift_type, tujuan, uraian_tugas, jam_berangkat, jam_pulang } = req.body;
+      const { tanggal, nama, department_id, shift_type,目的: tujuan, uraian_tugas, jam_berangkat, jam_pulang } = req.body;
       const today = new Date().toISOString().slice(0, 10);
       const id = uuidv4();
       await pool.execute(
         `INSERT INTO outside_duty_records (id, tanggal, nama, department_id, shift_type, tujuan, uraian_tugas, jam_berangkat, jam_pulang, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, tanggal || today, nama, department_id, shift_type || 'non_shift', tujuan || null, uraian_tugas || null, jam_berangkat, jam_pulang || null, req.user.id]
+        [id, tanggal || today, nama, department_id, shift_type || 'non_shift', req.body.tujuan || null, uraian_tugas || null, jam_berangkat, jam_pulang || null, req.user.id]
       );
       const [rows] = await pool.execute(
         `SELECT o.*, d.name as department_name FROM outside_duty_records o JOIN departments d ON o.department_id = d.id WHERE o.id = ?`, [id]
       );
+      emitRealtimeEvent('security:updated', { type: 'outside_duty', action: 'create' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.status(201).json({ success: true, message: 'Data tugas luar berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -158,6 +167,8 @@ class SecurityController {
       const [rows] = await pool.execute(
         `SELECT o.*, d.name as department_name FROM outside_duty_records o JOIN departments d ON o.department_id = d.id WHERE o.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('security:updated', { type: 'outside_duty', action: 'update' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data tugas luar berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -166,6 +177,8 @@ class SecurityController {
     try {
       const pool = getPool();
       await pool.execute('DELETE FROM outside_duty_records WHERE id = ?', [req.params.id]);
+      emitRealtimeEvent('security:updated', { type: 'outside_duty', action: 'delete' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data tugas luar berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -195,6 +208,8 @@ class SecurityController {
       const [rows] = await pool.execute(
         `SELECT e.*, d.name as department_name FROM early_leave_records e JOIN departments d ON e.department_id = d.id WHERE e.id = ?`, [id]
       );
+      emitRealtimeEvent('security:updated', { type: 'early_leave', action: 'create' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.status(201).json({ success: true, message: 'Data pulang awal berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -210,6 +225,8 @@ class SecurityController {
       const [rows] = await pool.execute(
         `SELECT e.*, d.name as department_name FROM early_leave_records e JOIN departments d ON e.department_id = d.id WHERE e.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('security:updated', { type: 'early_leave', action: 'update' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data pulang awal berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -218,6 +235,8 @@ class SecurityController {
     try {
       const pool = getPool();
       await pool.execute('DELETE FROM early_leave_records WHERE id = ?', [req.params.id]);
+      emitRealtimeEvent('security:updated', { type: 'early_leave', action: 'delete' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data pulang awal berhasil dihapus.' });
     } catch (error) { next(error); }
   }
@@ -242,11 +261,13 @@ class SecurityController {
       const id = uuidv4();
       await pool.execute(
         `INSERT INTO leave_work_records (id, tanggal, nama, department_id, shift_type, dari_jam, sampai_jam, alasan, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, tanggal || today, nama, department_id, shift_type || 'non_shift', dari_jam, sampai_jam || null, alasan || null, req.user.id]
+        [id, tanggal || today, nama, department_id, shift_type || 'non_shift', dari_jam, sampai_jam || null, req.user.id]
       );
       const [rows] = await pool.execute(
         `SELECT lw.*, d.name as department_name FROM leave_work_records lw JOIN departments d ON lw.department_id = d.id WHERE lw.id = ?`, [id]
       );
+      emitRealtimeEvent('security:updated', { type: 'leave_work', action: 'create' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.status(201).json({ success: true, message: 'Data meninggalkan pekerjaan berhasil disimpan.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -262,6 +283,8 @@ class SecurityController {
       const [rows] = await pool.execute(
         `SELECT lw.*, d.name as department_name FROM leave_work_records lw JOIN departments d ON lw.department_id = d.id WHERE lw.id = ?`, [req.params.id]
       );
+      emitRealtimeEvent('security:updated', { type: 'leave_work', action: 'update' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data meninggalkan pekerjaan berhasil diperbarui.', data: rows[0] });
     } catch (error) { next(error); }
   }
@@ -270,6 +293,8 @@ class SecurityController {
     try {
       const pool = getPool();
       await pool.execute('DELETE FROM leave_work_records WHERE id = ?', [req.params.id]);
+      emitRealtimeEvent('security:updated', { type: 'leave_work', action: 'delete' });
+      emitRealtimeEvent('dashboard:updated', { type: 'security' });
       res.json({ success: true, message: 'Data meninggalkan pekerjaan berhasil dihapus.' });
     } catch (error) { next(error); }
   }

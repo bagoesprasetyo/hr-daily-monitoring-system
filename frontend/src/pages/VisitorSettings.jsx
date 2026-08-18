@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import socket from '../services/socket';
 import {
   Settings2, CreditCard, CheckCircle2, AlertCircle,
   Loader2, Edit3, X, Save
@@ -102,7 +103,22 @@ export default function VisitorSettings() {
     }
   };
 
-  useEffect(() => { fetchPasses(); }, []);
+  useEffect(() => {
+    fetchPasses();
+    const onPassUpdate = () => { fetchPasses(); };
+    socket.on('visitor:new', onPassUpdate);
+    socket.on('visitor:pass_assigned', onPassUpdate);
+    socket.on('visitor:verified', onPassUpdate);
+    socket.on('visitor:checkout', onPassUpdate);
+    socket.on('visitor:updated', onPassUpdate);
+    return () => {
+      socket.off('visitor:new', onPassUpdate);
+      socket.off('visitor:pass_assigned', onPassUpdate);
+      socket.off('visitor:verified', onPassUpdate);
+      socket.off('visitor:checkout', onPassUpdate);
+      socket.off('visitor:updated', onPassUpdate);
+    };
+  }, []);
 
   const handleSave = async (id, { status, notes }) => {
     setSaving(true);

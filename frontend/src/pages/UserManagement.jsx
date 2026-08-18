@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Users, Search, Loader2, KeyRound, Power, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
+import socket from '../services/socket';
 import Pagination from '../components/Pagination';
 
 export default function UserManagement() {
@@ -34,6 +35,9 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchData();
+    const onUserUpdate = () => { fetchData(); };
+    socket.on('users:updated', onUserUpdate);
+    return () => { socket.off('users:updated', onUserUpdate); };
   }, []);
 
   const fetchData = async () => {

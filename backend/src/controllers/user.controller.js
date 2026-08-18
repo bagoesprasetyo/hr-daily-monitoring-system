@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const { emitRealtimeEvent } = require('../utils/socket');
 
 class UserController {
   /**
@@ -56,6 +57,7 @@ class UserController {
   async create(req, res, next) {
     try {
       const user = await userService.createUser(req.body);
+      emitRealtimeEvent('users:updated', { action: 'create', id: user.id });
 
       res.status(201).json({
         success: true,
@@ -73,6 +75,7 @@ class UserController {
   async update(req, res, next) {
     try {
       const user = await userService.updateUser(req.params.id, req.body);
+      emitRealtimeEvent('users:updated', { action: 'update', id: user.id });
 
       res.status(200).json({
         success: true,
@@ -90,6 +93,7 @@ class UserController {
   async toggleActive(req, res, next) {
     try {
       const user = await userService.toggleUserActive(req.params.id, req.user.id);
+      emitRealtimeEvent('users:updated', { action: 'toggle', id: user.id });
 
       res.status(200).json({
         success: true,
@@ -107,6 +111,7 @@ class UserController {
   async resetPassword(req, res, next) {
     try {
       const result = await userService.resetPassword(req.params.id, req.body.new_password);
+      emitRealtimeEvent('users:updated', { action: 'reset_password', id: req.params.id });
 
       res.status(200).json({
         success: true,
@@ -123,6 +128,7 @@ class UserController {
   async assignRole(req, res, next) {
     try {
       const user = await userService.assignRole(req.params.id, req.body.role);
+      emitRealtimeEvent('users:updated', { action: 'assign_role', id: user.id });
 
       res.status(200).json({
         success: true,

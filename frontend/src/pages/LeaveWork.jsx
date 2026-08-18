@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import socket from '../services/socket';
 import EmployeeListEditor from '../components/EmployeeListEditor';
 
 export default function LeaveWork() {
@@ -21,7 +22,12 @@ export default function LeaveWork() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+    const onSecurityUpdate = () => { fetchData(); };
+    socket.on('security:updated', onSecurityUpdate);
+    return () => { socket.off('security:updated', onSecurityUpdate); };
+  }, []);
 
   const handleSubmitRows = async (rows) => {
     setSaving(true);

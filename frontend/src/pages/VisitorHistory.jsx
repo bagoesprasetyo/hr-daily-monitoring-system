@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import socket from '../services/socket';
 import {
   History, Search, Filter,
   Download, FileText, Loader2, CheckCircle2, AlertCircle,
@@ -135,7 +136,22 @@ export default function VisitorHistory() {
     }
   }, [page, search, filterStatus, filterDate]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+    const onVisitorEvent = () => { fetchData(); };
+    socket.on('visitor:new', onVisitorEvent);
+    socket.on('visitor:pass_assigned', onVisitorEvent);
+    socket.on('visitor:verified', onVisitorEvent);
+    socket.on('visitor:checkout', onVisitorEvent);
+    socket.on('visitor:updated', onVisitorEvent);
+    return () => {
+      socket.off('visitor:new', onVisitorEvent);
+      socket.off('visitor:pass_assigned', onVisitorEvent);
+      socket.off('visitor:verified', onVisitorEvent);
+      socket.off('visitor:checkout', onVisitorEvent);
+      socket.off('visitor:updated', onVisitorEvent);
+    };
+  }, [fetchData]);
 
   // Reset page when filters change
   useEffect(() => { setPage(1); }, [search, filterStatus, filterDate]);
